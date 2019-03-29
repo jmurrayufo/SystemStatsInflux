@@ -13,7 +13,7 @@ while 1:
     cpu_percents = psutil.cpu_percent(interval=30, percpu=True)
 
     for idx,core in enumerate(cpu_percents):
-        data +=  f"cpu,hostname={socket.gethostname()},core={idx} use={cpu_percents[0]}\n"
+        data +=  f"cpu,hostname={socket.gethostname()},core={idx} use={cpu_percents[idx]}\n"
 
     mem_data = psutil.virtual_memory()
     data += f"memory,hostname={socket.gethostname()} total={mem_data.total}\n"
