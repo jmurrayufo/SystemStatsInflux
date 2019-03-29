@@ -27,7 +27,7 @@ while 1:
 
     cpu_freqs = psutil.cpu_freq(percpu=True)
     for idx,core in enumerate(cpu_freqs):
-        data +=  f"cpu,hostname={socket.gethostname()},core={idx} freq={cpu_freqs[idx]}\n"
+        data +=  f"cpu,hostname={socket.gethostname()},core={idx} freq={cpu_freqs[idx].current}\n"
 
     # Measure Memory
     mem_data = psutil.virtual_memory()
