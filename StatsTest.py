@@ -53,6 +53,11 @@ while 1:
 
     host = influxDB_host + '/write'
     params = {"db":"systems","precision":"s"}
-    r = requests.post( host, params=params, data=data)
+    try:
+        r = requests.post( host, params=params, data=data, timeout=1)
+    except e:
+        print("Error",e)
+        time.sleep(1)
+        continue
 
 # curl -XPOST 'http://192.168.3.4:8086/write?db=test' --data-binary 'cpu,hostname=herbihub,core=0 use=0.0'
