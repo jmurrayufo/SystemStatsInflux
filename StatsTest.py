@@ -2,12 +2,15 @@
 import requests
 import psutil
 import socket
+import time
 
 influxDB_host = "http://192.168.3.4:8086"
 
+
+t_last = time.time()
 while 1:
     data = ""
-    cpu_percents = psutil.cpu_percent(interval=1, percpu=True)
+    cpu_percents = psutil.cpu_percent(interval=30, percpu=True)
 
     for idx,core in enumerate(cpu_percents):
         data +=  f"cpu,hostname={socket.gethostname()},core={idx} use={cpu_percents[0]}\n"
@@ -33,6 +36,9 @@ while 1:
     params = {"db":"test","precision":"s"}
     r = requests.post( host, params=params, data=data)
     print(r)
+    while time.time() > t_last + 60:
+        time.sleep(1)
+    t_last += 60
     # print(r.text)
     # exit()
 
