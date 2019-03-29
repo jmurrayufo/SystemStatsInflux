@@ -6,15 +6,30 @@ import time
 
 influxDB_host = "http://192.168.3.4:8086"
 
+min_time_between_reports = 10
 
 t_last = time.time()
-while 1:
-    data = ""
-    cpu_percents = psutil.cpu_percent(interval=30, percpu=True)
+# Dummy call to init psutil tracking
 
+while 1:
+
+    # Loop until we are ready to report again
+    while time.time() > t_last + min_time_between_reports:
+        time.sleep(0.1)
+    t_last = time.time()
+
+    data = ""
+
+    # Measure CPU %'s
+    cpu_percents = psutil.cpu_percent(interval=min_time_between_reports/2, percpu=True)
     for idx,core in enumerate(cpu_percents):
         data +=  f"cpu,hostname={socket.gethostname()},core={idx} use={cpu_percents[idx]}\n"
 
+    cpu_freqs = psutil.cpu_freq(percpu=True)
+    for idx,core in enumerate(cpu_freqs):
+        data +=  f"cpu,hostname={socket.gethostname()},core={idx} freq={cpu_freqs[idx]}\n"
+
+    # Measure Memory
     mem_data = psutil.virtual_memory()
     data += f"memory,hostname={socket.gethostname()} total={mem_data.total}\n"
     data += f"memory,hostname={socket.gethostname()} available={mem_data.available}\n"
@@ -27,20 +42,17 @@ while 1:
     data += f"memory,hostname={socket.gethostname()} cached={mem_data.cached}\n"
     data += f"memory,hostname={socket.gethostname()} shared={mem_data.shared}\n"
     data += f"memory,hostname={socket.gethostname()} slab={mem_data.slab}\n"
-    
-    # data = f"cpu,hostname={socket.gethostname()},core=0 use={cpu_percents[0]}"
 
-    # print(data)
+    # Measure Disks
+    disk_use = psutil.disk_usage("/")
+    data += f"disk,hostname={socket.gethostname()} total={disk_use.total},used={disk_use.used},free={disk_use.free},percent={disk_use.percent}\n"
+
+    # Measure Processes
+    num_pids = len(psutil.pids())
+    data += f"pids,hostname={socket.gethostname()} count={num_pids}\n"
+
     host = influxDB_host + '/write'
-    # print(host)
-    params = {"db":"test","precision":"s"}
+    params = {"db":"systems","precision":"s"}
     r = requests.post( host, params=params, data=data)
-    print(r)
-    while time.time() > t_last + 60:
-        time.sleep(1)
-    t_last += 60
-    # print(r.text)
-    # exit()
-
 
 # curl -XPOST 'http://192.168.3.4:8086/write?db=test' --data-binary 'cpu,hostname=herbihub,core=0 use=0.0'
