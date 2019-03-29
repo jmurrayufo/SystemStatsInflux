@@ -55,7 +55,7 @@ while 1:
     params = {"db":"systems","precision":"s"}
     try:
         r = requests.post( host, params=params, data=data, timeout=1)
-    except e:
+    except Exception as e:
         print("Error",e)
         time.sleep(1)
         continue
