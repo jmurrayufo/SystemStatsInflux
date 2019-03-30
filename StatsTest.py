@@ -14,14 +14,14 @@ t_last = time.time()
 while 1:
 
     # Loop until we are ready to report again
-    while time.time() > t_last + min_time_between_reports:
-        time.sleep(0.1)
-    t_last = time.time()
+    # while time.time() > t_last + min_time_between_reports:
+    #     time.sleep(0.1)
+    # t_last = time.time()
 
     data = ""
 
     # Measure CPU %'s
-    cpu_percents = psutil.cpu_percent(interval=min_time_between_reports/2, percpu=True)
+    cpu_percents = psutil.cpu_percent(interval=min_time_between_reports-1, percpu=True)
     for idx,core in enumerate(cpu_percents):
         data +=  f"cpu,hostname={socket.gethostname()},core={idx} use={cpu_percents[idx]}\n"
 
