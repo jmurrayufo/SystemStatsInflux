@@ -51,6 +51,12 @@ while 1:
     num_pids = len(psutil.pids())
     data += f"pids,hostname={socket.gethostname()} count={num_pids}\n"
 
+    # Measure Temperatures
+    temperatures = psutil.sensors_temperatures()
+    for name in temperatures:
+        for idx,obj in enumerate(temperatures[name]):
+            data += f"temperature,hostname={socket.gethostname()},chipset={name},val_index={idx},label={obj.label} current={obj.current}\n"
+
     host = influxDB_host + '/write'
     params = {"db":"systems","precision":"s"}
     try:
