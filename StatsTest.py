@@ -55,7 +55,11 @@ while 1:
     temperatures = psutil.sensors_temperatures()
     for name in temperatures:
         for idx,obj in enumerate(temperatures[name]):
-            data += f"temperature,hostname={socket.gethostname()},chipset={name},val_index={idx},label={obj.label} current={obj.current}\n"
+            if len(obj.label) == 0:
+                label = 'none'
+            else:
+                label = obj.label
+            data += f"temperature,hostname={socket.gethostname()},chipset={name},val_index={idx},label={label} current={obj.current}\n"
 
     host = influxDB_host + '/write'
     params = {"db":"systems","precision":"s"}
