@@ -1,0 +1,14 @@
+[Unit]
+Description=Roach Controller
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 ./StatsTest.py
+WorkingDirectory=/root/Git/SystemStatsInflux
+User=root
+Group=root
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
