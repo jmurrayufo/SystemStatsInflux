@@ -21,6 +21,8 @@ while 1:
 
     data = ""
     hostname = socket.gethostname()
+
+    # Detect MAC for host type identication
     is_vm = f"{uuid.getnode():012X}".startswith("080027")
 
     # Measure CPU %'s
@@ -64,8 +66,17 @@ while 1:
                 label = obj.label
             data += f"temperature,hostname={hostname},is_vm={is_vm},chipset={name},val_index={idx},label={label} current={obj.current}\n"
 
-    # Detect MAC for host type identication
-
+    # Mesure Network
+    network = psutil.net_io_counters(pernic=True, nowrap=True)
+    for interface in network:
+        data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} bytes_sent={network[interface].bytes_sent}\n"
+        data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} bytes_recv={network[interface].bytes_recv}\n"
+        data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} packets_sent={network[interface].packets_sent}\n"
+        data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} packets_recv={network[interface].packets_recv}\n"
+        data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} errin={network[interface].errin}\n"
+        data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} errout={network[interface].errout}\n"
+        data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} dropin={network[interface].dropin}\n"
+        data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} dropout={network[interface].dropout}\n"
 
     host = influxDB_host + '/write'
     params = {"db":"systems","precision":"s"}
