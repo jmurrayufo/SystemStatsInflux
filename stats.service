@@ -1,5 +1,5 @@
 [Unit]
-Description=Roach Controller
+Description=Stats Collection Service
 After=multi-user.target
 
 [Service]
