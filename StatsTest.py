@@ -13,12 +13,6 @@ t_last = time.time()
 # Dummy call to init psutil tracking
 
 while 1:
-
-    # Loop until we are ready to report again
-    # while time.time() > t_last + min_time_between_reports:
-    #     time.sleep(0.1)
-    # t_last = time.time()
-
     data = ""
     hostname = socket.gethostname()
 
