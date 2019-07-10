@@ -12,6 +12,8 @@ min_time_between_reports = 10
 t_last = time.time()
 # Dummy call to init psutil tracking
 
+last_network = {}
+
 while 1:
     data = ""
     hostname = socket.gethostname()
@@ -63,6 +65,29 @@ while 1:
     # Mesure Network
     network = psutil.net_io_counters(pernic=True, nowrap=True)
     for interface in network:
+        # Calculate data in/out for easier graphing
+        if interface in last_network:
+            # Note, all values forced to be above zero incase no-wrap doesn't work
+            data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} d_bytes_sent={max(0, network[interface].bytes_sent - last_network[interface]['bytes_sent'])}\n"
+            data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} d_bytes_recv={max(0, network[interface].bytes_recv - last_network[interface]['bytes_recv'])}\n"
+            data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} d_packets_sent={max(0, network[interface].packets_sent - last_network[interface]['packets_sent'])}\n"
+            data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} d_packets_recv={max(0, network[interface].packets_recv - last_network[interface]['packets_recv'])}\n"
+            data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} d_errin={max(0, network[interface].errin - last_network[interface]['errin'])}\n"
+            data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} d_errout={max(0, network[interface].errout - last_network[interface]['errout'])}\n"
+            data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} d_dropin={max(0, network[interface].dropin - last_network[interface]['dropin'])}\n"
+            data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} d_dropout={max(0, network[interface].dropout - last_network[interface]['dropout'])}\n"
+        else:
+            last_network[interface] = {}
+
+        last_network[interface]['bytes_sent'] = network[interface].bytes_sent
+        last_network[interface]['bytes_recv'] = network[interface].bytes_recv
+        last_network[interface]['packets_sent'] = network[interface].packets_sent
+        last_network[interface]['packets_recv'] = network[interface].packets_recv
+        last_network[interface]['errin'] = network[interface].errin
+        last_network[interface]['errout'] = network[interface].errout
+        last_network[interface]['dropin'] = network[interface].dropin
+        last_network[interface]['dropout'] = network[interface].dropout
+
         data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} bytes_sent={network[interface].bytes_sent}\n"
         data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} bytes_recv={network[interface].bytes_recv}\n"
         data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} packets_sent={network[interface].packets_sent}\n"
@@ -76,6 +101,7 @@ while 1:
     params = {"db":"systems","precision":"s"}
     try:
         r = requests.post( host, params=params, data=data, timeout=1)
+        # print(data)
     except Exception as e:
         print("Error",e)
         time.sleep(1)
