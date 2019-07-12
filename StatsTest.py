@@ -53,7 +53,7 @@ while 1:
     try:
         zfs_data = subprocess.run(["zfs","list","-Hp"], stdout=subprocess.PIPE)
 
-        for row in zfs_data.decode().split("\n"):
+        for row in zfs_data.stdout.decode().split("\n"):
             row = row.split("\t")
             if len(row) < 5:
                 continue
