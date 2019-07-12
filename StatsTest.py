@@ -57,7 +57,7 @@ while 1:
             row = row.split("\t")
             if len(row) < 5:
                 continue
-            data += f"zfs,hostname={hostname},is_vm={is_vm},dataset=row[0],mountpoint=row[4] used=row[1],available=row[2],referenced=row[3]\n"
+            data += f"zfs,hostname={hostname},is_vm={is_vm},dataset={row[0]},mountpoint={row[4]} used={row[1]},available={row[2]},referenced={row[3]}\n"
     except FileNotFoundError:
         pass
 
