@@ -1,7 +1,8 @@
 #!/usr/bin/env python3.7
-import requests
 import psutil
+import requests
 import socket
+import subprocess
 import time
 import uuid
 
@@ -47,6 +48,18 @@ while 1:
     # Measure Disks
     disk_use = psutil.disk_usage("/")
     data += f"disk,hostname={hostname},is_vm={is_vm} total={disk_use.total},used={disk_use.used},free={disk_use.free},percent={disk_use.percent}\n"
+
+    # Measure ZFS on systems that support it
+    try:
+        zfs_data = subprocess.run(["zfs","list","-Hp"], stdout=subprocess.PIPE)
+
+        for row in zfs_data.decode().split("\n"):
+            row = row.split("\t")
+            if len(row) < 5:
+                continue
+            data += f"zfs,hostname={hostname},is_vm={is_vm},dataset=row[0],mountpoint=row[4] used=row[1],available=row[2],referenced=row[3]\n"
+    except FileNotFoundError:
+        pass
 
     # Measure Processes
     num_pids = len(psutil.pids())
