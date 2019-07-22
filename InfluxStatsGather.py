@@ -6,7 +6,7 @@ import subprocess
 import time
 import uuid
 
-influxDB_host = "http://192.168.4.2:8086"
+influxDB_host = "http://192.168.4.3:8086"
 
 min_time_between_reports = 9
 
