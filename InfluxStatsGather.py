@@ -121,7 +121,7 @@ while 1:
     
     t_sleep = t_last + min_time_between_reports - time.time()
     if t_sleep > 0:
-        sleep(t_sleep)
+        time.sleep(t_sleep)
 
     t_last = time.time()
 
