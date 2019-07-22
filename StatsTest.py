@@ -6,9 +6,9 @@ import subprocess
 import time
 import uuid
 
-influxDB_host = "http://192.168.3.4:8086"
+influxDB_host = "http://192.168.4.2:8086"
 
-min_time_between_reports = 10
+min_time_between_reports = 9
 
 t_last = time.time()
 # Dummy call to init psutil tracking
@@ -23,7 +23,7 @@ while 1:
     is_vm = f"{uuid.getnode():012X}".startswith("080027")
 
     # Measure CPU %'s
-    cpu_percents = psutil.cpu_percent(interval=min_time_between_reports-1, percpu=True)
+    cpu_percents = psutil.cpu_percent(interval=min_time_between_reports/2, percpu=True)
     for idx,core in enumerate(cpu_percents):
         data +=  f"cpu,hostname={hostname},is_vm={is_vm},core={idx} use={cpu_percents[idx]}\n"
 
@@ -117,7 +117,12 @@ while 1:
         # print(data)
     except Exception as e:
         print("Error",e)
-        time.sleep(1)
         continue
+    
+    t_sleep = t_last + min_time_between_reports - time.time()
+    if t_sleep > 0:
+        sleep(t_sleep)
+
+    t_last = time.time()
 
 # curl -XPOST 'http://192.168.3.4:8086/write?db=test' --data-binary 'cpu,hostname=herbihub,core=0 use=0.0'
