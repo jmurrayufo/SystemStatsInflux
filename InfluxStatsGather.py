@@ -8,7 +8,7 @@ import uuid
 
 influxDB_host = "http://192.168.4.3:8086"
 
-min_time_between_reports = 9
+min_time_between_reports = 5
 
 t_last = time.time()
 # Dummy call to init psutil tracking
@@ -20,7 +20,7 @@ while 1:
     hostname = socket.gethostname()
 
     # Detect MAC for host type identication
-    is_vm = f"{uuid.getnode():012X}".startswith("080027")
+    is_vm = f"{uuid.getnode():012X}".startswith("080027") or f"{uuid.getnode():012X}".startswith("525400")
 
     # Measure CPU %'s
     cpu_percents = psutil.cpu_percent(interval=min_time_between_reports/2, percpu=True)
