@@ -22,8 +22,12 @@ while 1:
     # Detect MAC for host type identication
     is_vm = f"{uuid.getnode():012X}".startswith("080027") or f"{uuid.getnode():012X}".startswith("525400")
 
+    # Record uptime
+    uptime = time.time() - psutil.boot_time()
+    data += f"uptime,hostname={hostname},is_vm={is_vm} seconds={uptime}\n"
+
     # Measure CPU %'s
-    cpu_percents = psutil.cpu_percent(interval=min_time_between_reports/2, percpu=True)
+    cpu_percents = psutil.cpu_percent(interval=min_time_between_reports*0.8, percpu=True)
     for idx,core in enumerate(cpu_percents):
         data +=  f"cpu,hostname={hostname},is_vm={is_vm},core={idx} use={cpu_percents[idx]}\n"
 
