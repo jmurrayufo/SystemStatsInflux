@@ -99,6 +99,7 @@ while 1:
             else:
                 label = fan.label
             data += f"fan,hostname={hostname},is_vm={is_vm},chipset={sensor},val_index={idx},label={label} current={obj.current}\n"
+            fan_num += 1
 
     # Mesure Network
     network = psutil.net_io_counters(pernic=True, nowrap=True)
