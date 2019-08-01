@@ -7,7 +7,7 @@ import time
 import uuid
 import argparse
 
-version = 4
+version = 5
 
 parser = argparse.ArgumentParser(description='Collect and log system statistics.')
 parser.add_argument('--logdest', default="http://192.168.4.3:8086", help="HTTP Endpoint to post data to.")
