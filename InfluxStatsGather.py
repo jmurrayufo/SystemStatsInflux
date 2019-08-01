@@ -7,6 +7,8 @@ import time
 import uuid
 import argparse
 
+version = 1
+
 parser = argparse.ArgumentParser(description='Collect and log system statistics.')
 parser.add_argument('--logdest', default="http://192.168.4.3:8086", help="HTTP Endpoint to post data to.")
 parser.add_argument('--test', action='store_true', help="Do not post data, just collect and print")
@@ -28,6 +30,9 @@ while 1:
 
     # Detect MAC for host type identication
     is_vm = f"{uuid.getnode():012X}".startswith("080027") or f"{uuid.getnode():012X}".startswith("525400")
+
+    # Record script version
+    data += f"script_version,hostname={hostname},is_vm={is_vm} value={version}\n"
 
     # Record uptime
     uptime = time.time() - psutil.boot_time()
