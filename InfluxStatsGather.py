@@ -34,6 +34,10 @@ while 1:
     # Record script version
     data += f"script_version,hostname={hostname},is_vm={is_vm} value={version}\n"
 
+    # Record users
+    users = psutil.users()
+    data += f"users,hostname={hostname},is_vm={is_vm} total_count={len(users)}\n"
+
     # Record uptime
     uptime = time.time() - psutil.boot_time()
     data += f"uptime,hostname={hostname},is_vm={is_vm} seconds={uptime}\n"
