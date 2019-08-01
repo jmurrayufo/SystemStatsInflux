@@ -5,8 +5,15 @@ import socket
 import subprocess
 import time
 import uuid
+import argparse
 
-influxDB_host = "http://192.168.4.3:8086"
+parser = argparse.ArgumentParser(description='Collect and log system statistics.')
+parser.add_argument('--logdest', default="http://192.168.4.3:8086", help="HTTP Endpoint to post data to.")
+parser.add_argument('--test', action='store_true', help="Do not post data, just collect and print")
+
+args = parser.parse_args()
+
+influxDB_host = args.logdest
 
 min_time_between_reports = 5
 
@@ -117,8 +124,10 @@ while 1:
     host = influxDB_host + '/write'
     params = {"db":"systems","precision":"s"}
     try:
-        r = requests.post( host, params=params, data=data, timeout=1)
-        # print(data)
+        if args.test:
+            print(data)
+        else:
+            r = requests.post( host, params=params, data=data, timeout=1)
     except Exception as e:
         print("Error",e)
         continue
