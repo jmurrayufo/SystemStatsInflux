@@ -7,7 +7,7 @@ import time
 import uuid
 import argparse
 
-version = 3
+version = 4
 
 parser = argparse.ArgumentParser(description='Collect and log system statistics.')
 parser.add_argument('--logdest', default="http://192.168.4.3:8086", help="HTTP Endpoint to post data to.")
@@ -98,7 +98,7 @@ while 1:
                 label = f"fan_{fan_num}"
             else:
                 label = fan.label
-            data += f"fan,hostname={hostname},is_vm={is_vm},chipset={sensor},val_index={idx},label={label} current={obj.current}\n"
+            data += f"fan,hostname={hostname},is_vm={is_vm},chipset={sensor},val_index={idx},label={label} current={fan.current}\n"
             fan_num += 1
 
     # Mesure Network
