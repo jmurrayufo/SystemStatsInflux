@@ -7,7 +7,7 @@ import time
 import uuid
 import argparse
 
-version = 1
+version = 2
 
 parser = argparse.ArgumentParser(description='Collect and log system statistics.')
 parser.add_argument('--logdest', default="http://192.168.4.3:8086", help="HTTP Endpoint to post data to.")
@@ -90,6 +90,15 @@ while 1:
             else:
                 label = obj.label
             data += f"temperature,hostname={hostname},is_vm={is_vm},chipset={name},val_index={idx},label={label} current={obj.current}\n"
+    fans = psutil.sensors_fans()
+    fan_num = 0
+    for sensor in fans:
+        for idx,fan in enumerate(fans[sensor]):
+            if len(fan.label) == 0:
+                label = f"fan_{fan_num}"
+            else:
+                label = fan.label
+            data += f"fan,hostname={hostname},is_vm={is_vm},chipset={sensor},val_index={idx},label={label} current={obj.current}\n"
 
     # Mesure Network
     network = psutil.net_io_counters(pernic=True, nowrap=True)
