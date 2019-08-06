@@ -7,7 +7,7 @@ import time
 import uuid
 import argparse
 
-version = 6
+version = 7
 
 parser = argparse.ArgumentParser(description='Collect and log system statistics.')
 parser.add_argument('--logdest', default="http://192.168.4.3:8086", help="HTTP Endpoint to post data to.")
@@ -25,7 +25,10 @@ t_last = time.time()
 is_vm = False
 
 nics = psutil.net_if_addrs()
+
 for i in nics:
+    if not i.startswith('e'):
+        continue
     for j in nics[i]:
         if j.family == 17:  # AF_LINK
             if j.address.startswith("08:00:27") or j.address.startswith("52:54:00"):
