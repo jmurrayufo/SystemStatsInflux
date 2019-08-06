@@ -7,7 +7,7 @@ import time
 import uuid
 import argparse
 
-version = 5
+version = 6
 
 parser = argparse.ArgumentParser(description='Collect and log system statistics.')
 parser.add_argument('--logdest', default="http://192.168.4.3:8086", help="HTTP Endpoint to post data to.")
@@ -22,6 +22,15 @@ min_time_between_reports = 5
 t_last = time.time()
 # Dummy call to init psutil tracking
 
+is_vm = False
+
+nics = psutil.net_if_addrs()
+for i in nics:
+    for j in nics[i]:
+        if j.family == 17:  # AF_LINK
+            if j.address.startswith("08:00:27") or j.address.startswith("52:54:00"):
+                is_vm = True
+
 last_network = {}
 
 while 1:
@@ -29,7 +38,7 @@ while 1:
     hostname = socket.gethostname()
 
     # Detect MAC for host type identication
-    is_vm = f"{uuid.getnode():012X}".startswith("080027") or f"{uuid.getnode():012X}".startswith("525400")
+    # is_vm = f"{uuid.getnode():012X}".startswith("080027") or f"{uuid.getnode():012X}".startswith("525400")
 
     # Record script version
     data += f"script_version,hostname={hostname},is_vm={is_vm} value={version}\n"
