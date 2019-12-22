@@ -8,26 +8,37 @@ influx -execute 'CREATE DATABASE sensors'
 influx -execute 'CREATE DATABASE systems'
 # Create path of exile DB
 influx -execute 'CREATE DATABASE poe'
+influx -execute 'CREATE DATABASE poe_currency'
 
+echo 'Create autogen retention policies'
 influx -execute 'ALTER RETENTION POLICY autogen ON sensors DURATION 3d REPLICATION 1 SHARD DURATION 1d DEFAULT'
 influx -execute 'ALTER RETENTION POLICY autogen ON systems DURATION 3d REPLICATION 1 SHARD DURATION 1d DEFAULT'
 influx -execute 'ALTER RETENTION POLICY autogen ON poe DURATION 1d REPLICATION 1 SHARD DURATION 1d DEFAULT'
+influx -execute 'ALTER RETENTION POLICY autogen ON poe_currency DURATION 3d REPLICATION 1 SHARD DURATION 1d DEFAULT'
 
+echo 'Create weekly retention policies'
 influx -execute 'CREATE RETENTION POLICY a_week ON sensors DURATION 7d REPLICATION 1 SHARD DURATION 1d'
 influx -execute 'CREATE RETENTION POLICY a_week ON systems DURATION 7d REPLICATION 1 SHARD DURATION 1d'
 #influx -execute 'CREATE RETENTION POLICY a_week ON poe DURATION 7d REPLICATION 1 SHARD DURATION 1d'
+influx -execute 'CREATE RETENTION POLICY a_week ON poe_currency DURATION 7d REPLICATION 1 SHARD DURATION 1d'
 
+echo 'Create monthly retention policies'
 influx -execute 'CREATE RETENTION POLICY a_month ON sensors DURATION 31d REPLICATION 1 SHARD DURATION 1d'
 influx -execute 'CREATE RETENTION POLICY a_month ON systems DURATION 31d REPLICATION 1 SHARD DURATION 1d'
 influx -execute 'CREATE RETENTION POLICY a_month ON poe DURATION 31d REPLICATION 1 SHARD DURATION 1d'
+influx -execute 'CREATE RETENTION POLICY a_month ON poe_currency DURATION 31d REPLICATION 1 SHARD DURATION 1d'
 
+echo 'Create yearly retention policies'
 influx -execute 'CREATE RETENTION POLICY a_year ON sensors DURATION 52w REPLICATION 1 SHARD DURATION 1w'
 influx -execute 'CREATE RETENTION POLICY a_year ON systems DURATION 52w REPLICATION 1 SHARD DURATION 1w'
 influx -execute 'CREATE RETENTION POLICY a_year ON poe DURATION 52w REPLICATION 1 SHARD DURATION 1w'
+influx -execute 'CREATE RETENTION POLICY a_year ON poe_currency DURATION 52w REPLICATION 1 SHARD DURATION 1w'
 
+echo 'Create eternal retention policies'
 influx -execute 'CREATE RETENTION POLICY forever ON sensors DURATION inf REPLICATION 1 SHARD DURATION 1w'
 influx -execute 'CREATE RETENTION POLICY forever ON systems DURATION inf REPLICATION 1 SHARD DURATION 1w'
 influx -execute 'CREATE RETENTION POLICY forever ON poe DURATION inf REPLICATION 1 SHARD DURATION 1w'
+influx -execute 'CREATE RETENTION POLICY forever ON poe_currency DURATION inf REPLICATION 1 SHARD DURATION 1w'
 
 # Sensor retention policy
 # a_week: 7d/1d  
@@ -39,36 +50,43 @@ influx -execute 'CREATE RETENTION POLICY forever ON poe DURATION inf REPLICATION
 # forever: inf/7d
 #   Data is finally descimated to hours and saved forever
 
+echo 'Create sensor CQs'
 influx -execute 'CREATE CONTINUOUS QUERY "cq_10s" ON "sensors" BEGIN SELECT mean(*) INTO "sensors"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_10s" ON "systems" BEGIN SELECT mean(*) INTO "systems"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
-#influx -execute 'CREATE CONTINUOUS QUERY "cq_10s" ON "poe" BEGIN SELECT mean(*) INTO "poe"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
-
 influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_mean" ON "sensors" BEGIN SELECT mean(*) INTO "sensors"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_mean" ON "systems" BEGIN SELECT mean(*) INTO "systems"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_mean" ON "poe" BEGIN SELECT mean(*) INTO "poe"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
-
 influx -execute 'CREATE CONTINUOUS QUERY "cq_10min" ON "sensors" BEGIN SELECT mean(*) INTO "sensors"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_10min" ON "systems" BEGIN SELECT mean(*) INTO "systems"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_10min" ON "poe" BEGIN SELECT mean(*) INTO "poe"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
-
 influx -execute 'CREATE CONTINUOUS QUERY "cq_1hr_mean" ON "sensors" BEGIN SELECT mean(*) INTO "sensors"."forever".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_1hr_mean" ON "systems" BEGIN SELECT mean(*) INTO "systems"."forever".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_1hr_mean" ON "poe" BEGIN SELECT mean(*) INTO "poe"."forever".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
-
 
 influx -execute 'CREATE CONTINUOUS QUERY "cq_10s_sum" ON "sensors" BEGIN SELECT sum(*) INTO "sensors"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_10s_sum" ON "systems" BEGIN SELECT sum(*) INTO "systems"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
-#influx -execute 'CREATE CONTINUOUS QUERY "cq_10s_sum" ON "poe" BEGIN SELECT sum(*) INTO "poe"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
-
 influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_sum" ON "sensors" BEGIN SELECT sum(*) INTO "sensors"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_sum" ON "systems" BEGIN SELECT sum(*) INTO "systems"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_sum" ON "poe" BEGIN SELECT sum(*) INTO "poe"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
-
 influx -execute 'CREATE CONTINUOUS QUERY "cq_10min_sum" ON "sensors" BEGIN SELECT sum(*) INTO "sensors"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_10min_sum" ON "systems" BEGIN SELECT sum(*) INTO "systems"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
-influx -execute 'CREATE CONTINUOUS QUERY "cq_10min_sum" ON "poe" BEGIN SELECT sum(*) INTO "poe"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
-
 influx -execute 'CREATE CONTINUOUS QUERY "cq_1hr_sum" ON "sensors" BEGIN SELECT sum(*) INTO "sensors"."forever".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
+
+echo 'Create system CQs'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_10s" ON "systems" BEGIN SELECT mean(*) INTO "systems"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_mean" ON "systems" BEGIN SELECT mean(*) INTO "systems"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_10min" ON "systems" BEGIN SELECT mean(*) INTO "systems"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_1hr_mean" ON "systems" BEGIN SELECT mean(*) INTO "systems"."forever".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
+
+influx -execute 'CREATE CONTINUOUS QUERY "cq_10s_sum" ON "systems" BEGIN SELECT sum(*) INTO "systems"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_sum" ON "systems" BEGIN SELECT sum(*) INTO "systems"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_10min_sum" ON "systems" BEGIN SELECT sum(*) INTO "systems"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
 influx -execute 'CREATE CONTINUOUS QUERY "cq_1hr_sum" ON "systems" BEGIN SELECT sum(*) INTO "systems"."forever".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
+
+echo 'Create Path of Exile CQs'
+#influx -execute 'CREATE CONTINUOUS QUERY "cq_10s" ON "poe" BEGIN SELECT mean(*) INTO "poe"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_mean" ON "poe" BEGIN SELECT mean(*) INTO "poe"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_10min" ON "poe" BEGIN SELECT mean(*) INTO "poe"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_1hr_mean" ON "poe" BEGIN SELECT mean(*) INTO "poe"."forever".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
+
+#influx -execute 'CREATE CONTINUOUS QUERY "cq_10s_sum" ON "poe" BEGIN SELECT sum(*) INTO "poe"."a_week".:MEASUREMENT FROM /.*/ GROUP BY time(10s),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_sum" ON "poe" BEGIN SELECT sum(*) INTO "poe"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_10min_sum" ON "poe" BEGIN SELECT sum(*) INTO "poe"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
 influx -execute 'CREATE CONTINUOUS QUERY "cq_1hr_sum" ON "poe" BEGIN SELECT sum(*) INTO "poe"."forever".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
 
+echo 'Create Path of Exile Currency CQs'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_10min" ON "poe_currency" BEGIN SELECT mean(*),median(*),count(*),spread(*),stddev(*),min(*),max(*) INTO "poe_currency"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
+influx -execute 'CREATE CONTINUOUS QUERY "cq_1hour" ON "poe_currency" BEGIN SELECT mean(*),median(*),count(*),spread(*),stddev(*),min(*),max(*) INTO "poe_currency"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
+# Note, these things are kinda wonky for data we only get every minute or two.... 
+#influx -execute 'CREATE CONTINUOUS QUERY "cq_1min_stats" ON "poe_currency" BEGIN SELECT mean(*) INTO "poe_currency"."a_month".:MEASUREMENT FROM /.*/ GROUP BY time(1m),* END'
+#influx -execute 'CREATE CONTINUOUS QUERY "cq_10min_stats" ON "poe_currency" BEGIN SELECT mean(*) INTO "poe_currency"."a_year".:MEASUREMENT FROM /.*/ GROUP BY time(10m),* END'
+#influx -execute 'CREATE CONTINUOUS QUERY "cq_1hr_stats" ON "poe_currency" BEGIN SELECT mean(*) INTO "poe_currency"."forever".:MEASUREMENT FROM /.*/ GROUP BY time(1h),* END'
