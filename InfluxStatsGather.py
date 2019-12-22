@@ -5,13 +5,34 @@ import socket
 import subprocess
 import time
 import uuid
+import argparse
 
-influxDB_host = "http://192.168.4.3:8086"
+version = 7
+
+parser = argparse.ArgumentParser(description='Collect and log system statistics.')
+parser.add_argument('--logdest', default="http://192.168.4.3:8086", help="HTTP Endpoint to post data to.")
+parser.add_argument('--test', action='store_true', help="Do not post data, just collect and print")
+
+args = parser.parse_args()
+
+influxDB_host = args.logdest
 
 min_time_between_reports = 5
 
 t_last = time.time()
 # Dummy call to init psutil tracking
+
+is_vm = False
+
+nics = psutil.net_if_addrs()
+
+for i in nics:
+    if not i.startswith('e'):
+        continue
+    for j in nics[i]:
+        if j.family == 17:  # AF_LINK
+            if j.address.startswith("08:00:27") or j.address.startswith("52:54:00"):
+                is_vm = True
 
 last_network = {}
 
@@ -20,10 +41,21 @@ while 1:
     hostname = socket.gethostname()
 
     # Detect MAC for host type identication
-    is_vm = f"{uuid.getnode():012X}".startswith("080027") or f"{uuid.getnode():012X}".startswith("525400")
+    # is_vm = f"{uuid.getnode():012X}".startswith("080027") or f"{uuid.getnode():012X}".startswith("525400")
+
+    # Record script version
+    data += f"script_version,hostname={hostname},is_vm={is_vm} value={version}\n"
+
+    # Record users
+    users = psutil.users()
+    data += f"users,hostname={hostname},is_vm={is_vm} total_count={len(users)}\n"
+
+    # Record uptime
+    uptime = time.time() - psutil.boot_time()
+    data += f"uptime,hostname={hostname},is_vm={is_vm} seconds={uptime}\n"
 
     # Measure CPU %'s
-    cpu_percents = psutil.cpu_percent(interval=min_time_between_reports/2, percpu=True)
+    cpu_percents = psutil.cpu_percent(interval=min_time_between_reports*0.8, percpu=True)
     for idx,core in enumerate(cpu_percents):
         data +=  f"cpu,hostname={hostname},is_vm={is_vm},core={idx} use={cpu_percents[idx]}\n"
 
@@ -74,6 +106,16 @@ while 1:
             else:
                 label = obj.label
             data += f"temperature,hostname={hostname},is_vm={is_vm},chipset={name},val_index={idx},label={label} current={obj.current}\n"
+    fans = psutil.sensors_fans()
+    fan_num = 0
+    for sensor in fans:
+        for idx,fan in enumerate(fans[sensor]):
+            if len(fan.label) == 0:
+                label = f"fan_{fan_num}"
+            else:
+                label = fan.label
+            data += f"fan,hostname={hostname},is_vm={is_vm},chipset={sensor},val_index={idx},label={label} current={fan.current}\n"
+            fan_num += 1
 
     # Mesure Network
     network = psutil.net_io_counters(pernic=True, nowrap=True)
@@ -113,8 +155,10 @@ while 1:
     host = influxDB_host + '/write'
     params = {"db":"systems","precision":"s"}
     try:
-        r = requests.post( host, params=params, data=data, timeout=1)
-        # print(data)
+        if args.test:
+            print(data)
+        else:
+            r = requests.post( host, params=params, data=data, timeout=1)
     except Exception as e:
         print("Error",e)
         continue
