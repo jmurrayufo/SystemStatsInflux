@@ -7,7 +7,7 @@ import time
 import uuid
 import argparse
 
-version = 7
+version = 8
 
 parser = argparse.ArgumentParser(description='Collect and log system statistics.')
 parser.add_argument('--logdest', default="http://192.168.4.3:8086", help="HTTP Endpoint to post data to.")
@@ -151,6 +151,8 @@ while 1:
         data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} errout={network[interface].errout}\n"
         data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} dropin={network[interface].dropin}\n"
         data += f"network,hostname={hostname},is_vm={is_vm},interface={interface} dropout={network[interface].dropout}\n"
+
+    data += f"misc,hostname={hostname},is_vm={is_vm},interface={interface} is_up=1\n"
 
     host = influxDB_host + '/write'
     params = {"db":"systems","precision":"s"}
